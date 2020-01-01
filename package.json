@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NathanScheele/CS326Project.git"
+    "url": "git+https://github.com/matthewspahl/Birthday_Tracker"
   },
   "author": "Nathan, Matt, Dan, Will",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/NathanScheele/CS326Project/issues"
+    "url": "https://github.com/matthewspahl/Birthday_Tracker/issues"
   },
-  "homepage": "https://github.com/NathanScheele/CS326Project#readme",
+  "homepage": "https://github.com/matthewspahl/Birthday_Tracker/blob/master/README.md",
   "dependencies": {
     "body-parser": "^1.19.0",
     "bootstrap": "^4.3.1",
