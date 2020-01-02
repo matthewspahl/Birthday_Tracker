@@ -36,7 +36,7 @@ $("button[name='confirm']").click(function (event) {
                 //Store the jwt token for later use
                 sessionStorage.setItem('token', data.token);
                 //redirect to the Fridge
-                window.location.href = "http://localhost:3000/html/myFridge.html";
+                window.location.href = "http://localhost:3000/html/ListOfBirthdays.html";
             }
         }).fail(function (jqXHR) {
             $("#error").html("Login Error");

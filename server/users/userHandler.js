@@ -78,13 +78,12 @@ module.exports = {
     });
   },
 
-  //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <name: <name of food>>}
-  addItem: function (req, res) {
+  //req should be in the form of {token: <jwt token form local storage>, name: <name of friend>, date: <name: <name of food>>}
+  addBirthday: function (req, res) {
     let token = req.body.token;
-    let loc = req.body.location;
-    let item = req.body.item;
+    let birthday = req.body.birthday;
 
-    console.log(item)
+    console.log(birthDate)
     let decoded = jwt.decode(token, secret);
 
     User.findById(decoded.id, function (err, user) {
@@ -93,12 +92,7 @@ module.exports = {
         res.status(500).send(err);
       }
       else {
-        if (loc == "fridge") {
-          user.fridge.push(item)
-        }
-        else {
-          user.freezer.push(item);
-        }
+        user.birthdays.push(birthday);
 
         user.save(function (err, user) {
           if (err) {
@@ -115,10 +109,9 @@ module.exports = {
   },
 
   //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <food item to removed>}
-  removeItem: function (req, res) {
+  removeBirthday: function (req, res) {
     let token = req.body.token;
-    let loc = req.body.location;
-    let item = req.body.item;
+    let birthday = req.body.item;
 
     const decoded = jwt.decode(token, secret);
 
@@ -128,18 +121,9 @@ module.exports = {
         res.status(500).send(err);
       }
       else {
-        if (loc == "fridge") {
-          for (let i = 0; i < user.fridge.length; i++) {
-            if (user.fridge[i].name == item.name && user.fridge[i].quantity == item.quantity) {
-              user.fridge.splice(i, 1);
-            }
-          }
-        }
-        else {
-          for (let i = 0; i < user.freezer.length; i++) {
-            if (user.freezer[i].name == item.name && user.freezer[i].quantity == item.quantity) {
-              user.freezer.splice(i, 1);
-            }
+        for (let i = 0; i < user.birthdays.length; i++) {
+          if (user.birthdays[i].name == birthday.name && user.birthdays[i].quantity == birthday.quantity) {
+            user.birthdays.splice(i, 1);
           }
         }
 
@@ -158,11 +142,10 @@ module.exports = {
   },
 
   //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <food item to removed>}
-  updateItem: function (req, res) {
+  updateBirthday: function (req, res) {
     let token = req.body.token;
-    let loc = req.body.location;
-    let oldItem = req.body.oldItem;
-    let newItem = req.body.newItem;
+    let oldBirthday = req.body.oldBirthday;
+    let newBirthday = req.body.newBirthday;
     const decoded = jwt.decode(token, secret);
 
     User.findById(decoded.id, function (err, user) {
@@ -171,18 +154,10 @@ module.exports = {
         res.status(500).send(err);
       }
       else {
-        if (loc == "fridge") {
-          for (let i = 0; i < user.fridge.length; i++) {
-            if (user.fridge[i].name == oldItem.name && user.fridge[i].quantity == oldItem.quantity) {
-              user.fridge[i] = newItem;
-            }
-          }
-        }
-        else {
-          for (let i = 0; i < user.freezer.length; i++) {
-            if (user.freezer[i].name == oldItem.name && user.freezer[i].quantity == oldItem.quantity) {
-              user.freezer[i] = newItem;
-            }
+
+        for (let i = 0; i < user.birthdays.length; i++) {
+          if (user.birthdays[i].name == oldBirthday.name && user.birthdays[i].quantity == oldBirthday.quantity) {
+            user.birthdays[i] = newItem;
           }
         }
 
@@ -200,115 +175,7 @@ module.exports = {
     });
   },
 
-  getItems: function (req, res) {
-    let token = req.query.token;
-    let loc = req.query.location;
-
-    const decoded = jwt.decode(token, secret);
-
-    User.findById(decoded.id, function (err, user) {
-      if (err) {
-        console.log("Error: unable to contact database");
-        res.status(500).send("Error: unable to contact database");
-      }
-      else {
-        if (loc == 'fridge') {
-          res.status(200).json(user.fridge);
-        }
-        else if (loc == 'freezer') {
-          res.status(200).json(user.freezer);
-        }
-        else {
-          res.status(200).json({ freezer: user.freezer, fridge: user.fridge });
-        }
-      }
-    });
-  },
-
-  getRecipes: function (req, res) {
-    const apiKey = process.env.SPOONACULAR_API_KEY;
-    let ingredients = req.query.ingredients;
-
-    let uri = `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${apiKey}&ingredients=${ingredients[0]}`;
-
-    for (let i = 1; i < ingredients.length; i++) {
-      uri += `,+${ingredients[i]}`;
-    }
-
-    let recipes = [];
-
-    let data = '';
-
-    https.get(uri, (response) => {
-
-      response.on('data', (d) => {
-        data += d;
-      });
-
-      response.on('end', () => {
-        data = JSON.parse(data);
-        ids = [];
-
-        for (let i = 0; i < data.length; i++) {
-          ids.push(data[i].id);
-        }
-
-        for (let i = 0; i < ids.length; i++) {
-          let uri = `https://api.spoonacular.com/recipes/${ids[i]}/information?apiKey=${apiKey}&includeNutrition=false`;
-
-          let recipe = '';
-
-          https.get(uri, (response) => {
-            response.on('data', (d) => {
-              recipe += d;
-            });
-
-            response.on('end', () => {
-              recipe = JSON.parse(recipe);
-              recipes.push(recipe.sourceUrl);
-              if (recipes.length == ids.length) {
-                res.status(200).json({ recipes: recipes });
-              }
-            })
-          })
-        }
-      })
-
-    }).on('error', (e) => {
-      console.error(e);
-    });
-  },
-
-  addRecipe: function (req, res) {
-    let token = req.body.token;
-    let recipe = req.body.recipe;
-
-    const decoded = jwt.decode(token, secret);
-
-    User.findById(decoded.id, function (err, user) {
-      if (err) { //throws errow if something goes wrong when contacting the database
-        console.log("mongo err: ", err);
-        res.status(500).send(err);
-      }
-      else {
-        user.recipes.push(recipe);
-
-        user.save(function (err, user) {
-          if (err) {
-            console.log("ERROR: unable to update")
-            res.status(500).send("Error: unable to update")
-          }
-          else {
-            console.log("Update successful");
-            res.status(200).send("Update successful")
-          }
-        });
-      }
-    });
-
-  },
-
-  getSavedRecipes: function (req, res) {
+  getBirthdays: function (req, res) {
     let token = req.query.token;
 
     const decoded = jwt.decode(token, secret);
@@ -319,41 +186,287 @@ module.exports = {
         res.status(500).send("Error: unable to contact database");
       }
       else {
-        res.status(200).json(user.recipes);
-      }
-    });
-  },
-
-  removeRecipe: function (req, res) {
-    let token = req.body.token;
-    let recipe = req.body.recipe;
-
-    const decoded = jwt.decode(token, secret);
-
-    User.findById(decoded.id, function (err, user) {
-      if (err) {
-        console.log("Error: unable to contact database");
-        res.status(500).send("Error: unable to contact database");
-      }
-      else {
-        
-        for (let i = 0; i < user.recipes.length; i++) {
-          if (user.recipes[i] == recipe) {
-            console.log('here')
-            user.recipes.splice(i, 1);
-          }
-        }
-        user.save(function (err, user) {
-          if (err) {
-            console.log("ERROR: unable to update")
-            res.status(500).send("Error: unable to update")
-          }
-          else {
-            console.log("Update successful");
-            res.status(200).send("Update successful")
-          }
-        });
+        res.status(200).json(user.birthdays);
       }
     });
   }
+
+  // //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <name: <name of food>>}
+  // addItem: function (req, res) {
+  //   let token = req.body.token;
+  //   let loc = req.body.location;
+  //   let item = req.body.item;
+
+  //   console.log(item)
+  //   let decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) { //throws errow if something goes wrong when contacting the database
+  //       console.log("mongo err: ", err);
+  //       res.status(500).send(err);
+  //     }
+  //     else {
+  //       if (loc == "fridge") {
+  //         user.fridge.push(item)
+  //       }
+  //       else {
+  //         user.freezer.push(item);
+  //       }
+
+  //       user.save(function (err, user) {
+  //         if (err) {
+  //           console.log("ERROR: unable to update")
+  //           res.status(500).send(err)
+  //         }
+  //         else {
+  //           console.log("Update successful");
+  //           res.status(200).send("Update successful")
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
+
+  // //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <food item to removed>}
+  // removeItem: function (req, res) {
+  //   let token = req.body.token;
+  //   let loc = req.body.location;
+  //   let item = req.body.item;
+
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) { //throws errow if something goes wrong when contacting the database
+  //       console.log("mongo err: ", err);
+  //       res.status(500).send(err);
+  //     }
+  //     else {
+  //       if (loc == "fridge") {
+  //         for (let i = 0; i < user.fridge.length; i++) {
+  //           if (user.fridge[i].name == item.name && user.fridge[i].quantity == item.quantity) {
+  //             user.fridge.splice(i, 1);
+  //           }
+  //         }
+  //       }
+  //       else {
+  //         for (let i = 0; i < user.freezer.length; i++) {
+  //           if (user.freezer[i].name == item.name && user.freezer[i].quantity == item.quantity) {
+  //             user.freezer.splice(i, 1);
+  //           }
+  //         }
+  //       }
+
+  //       user.save(function (err, user) {
+  //         if (err) {
+  //           console.log("ERROR: unable to update")
+  //           res.status(500).send("Error: unable to update")
+  //         }
+  //         else {
+  //           console.log("Update successful");
+  //           res.status(200).send("Update successful")
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
+
+  // //req should be in the form of {token: <jwt token form local storage>, location: <"fridge" or "freezer">, item: <food item to removed>}
+  // updateItem: function (req, res) {
+  //   let token = req.body.token;
+  //   let loc = req.body.location;
+  //   let oldItem = req.body.oldItem;
+  //   let newItem = req.body.newItem;
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) { //throws errow if something goes wrong when contacting the database
+  //       console.log("mongo err: ", err);
+  //       res.status(500).send(err);
+  //     }
+  //     else {
+  //       if (loc == "fridge") {
+  //         for (let i = 0; i < user.fridge.length; i++) {
+  //           if (user.fridge[i].name == oldItem.name && user.fridge[i].quantity == oldItem.quantity) {
+  //             user.fridge[i] = newItem;
+  //           }
+  //         }
+  //       }
+  //       else {
+  //         for (let i = 0; i < user.freezer.length; i++) {
+  //           if (user.freezer[i].name == oldItem.name && user.freezer[i].quantity == oldItem.quantity) {
+  //             user.freezer[i] = newItem;
+  //           }
+  //         }
+  //       }
+
+  //       user.save(function (err, user) {
+  //         if (err) {
+  //           console.log("ERROR: unable to update")
+  //           res.status(500).send("Error: unable to update")
+  //         }
+  //         else {
+  //           console.log("Update successful");
+  //           res.status(200).send("Update successful")
+  //         }
+  //       });
+  //     }
+  //   });
+  // },
+
+  // getItems: function (req, res) {
+  //   let token = req.query.token;
+  //   let loc = req.query.location;
+
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) {
+  //       console.log("Error: unable to contact database");
+  //       res.status(500).send("Error: unable to contact database");
+  //     }
+  //     else {
+  //       if (loc == 'fridge') {
+  //         res.status(200).json(user.fridge);
+  //       }
+  //       else if (loc == 'freezer') {
+  //         res.status(200).json(user.freezer);
+  //       }
+  //       else {
+  //         res.status(200).json({ freezer: user.freezer, fridge: user.fridge });
+  //       }
+  //     }
+  //   });
+  // },
+
+  // getRecipes: function (req, res) {
+  //   const apiKey = process.env.SPOONACULAR_API_KEY;
+  //   let ingredients = req.query.ingredients;
+
+  //   let uri = `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${apiKey}&ingredients=${ingredients[0]}`;
+
+  //   for (let i = 1; i < ingredients.length; i++) {
+  //     uri += `,+${ingredients[i]}`;
+  //   }
+
+  //   let recipes = [];
+
+  //   let data = '';
+
+  //   https.get(uri, (response) => {
+
+  //     response.on('data', (d) => {
+  //       data += d;
+  //     });
+
+  //     response.on('end', () => {
+  //       data = JSON.parse(data);
+  //       ids = [];
+
+  //       for (let i = 0; i < data.length; i++) {
+  //         ids.push(data[i].id);
+  //       }
+
+  //       for (let i = 0; i < ids.length; i++) {
+  //         let uri = `https://api.spoonacular.com/recipes/${ids[i]}/information?apiKey=${apiKey}&includeNutrition=false`;
+
+  //         let recipe = '';
+
+  //         https.get(uri, (response) => {
+  //           response.on('data', (d) => {
+  //             recipe += d;
+  //           });
+
+  //           response.on('end', () => {
+  //             recipe = JSON.parse(recipe);
+  //             recipes.push(recipe.sourceUrl);
+  //             if (recipes.length == ids.length) {
+  //               res.status(200).json({ recipes: recipes });
+  //             }
+  //           })
+  //         })
+  //       }
+  //     })
+
+  //   }).on('error', (e) => {
+  //     console.error(e);
+  //   });
+  // },
+
+  // addRecipe: function (req, res) {
+  //   let token = req.body.token;
+  //   let recipe = req.body.recipe;
+
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) { //throws errow if something goes wrong when contacting the database
+  //       console.log("mongo err: ", err);
+  //       res.status(500).send(err);
+  //     }
+  //     else {
+  //       user.recipes.push(recipe);
+
+  //       user.save(function (err, user) {
+  //         if (err) {
+  //           console.log("ERROR: unable to update")
+  //           res.status(500).send("Error: unable to update")
+  //         }
+  //         else {
+  //           console.log("Update successful");
+  //           res.status(200).send("Update successful")
+  //         }
+  //       });
+  //     }
+  //   });
+
+  // },
+
+  // getSavedRecipes: function (req, res) {
+  //   let token = req.query.token;
+
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) {
+  //       console.log("Error: unable to contact database");
+  //       res.status(500).send("Error: unable to contact database");
+  //     }
+  //     else {
+  //       res.status(200).json(user.recipes);
+  //     }
+  //   });
+  // },
+
+  // removeRecipe: function (req, res) {
+  //   let token = req.body.token;
+  //   let recipe = req.body.recipe;
+
+  //   const decoded = jwt.decode(token, secret);
+
+  //   User.findById(decoded.id, function (err, user) {
+  //     if (err) {
+  //       console.log("Error: unable to contact database");
+  //       res.status(500).send("Error: unable to contact database");
+  //     }
+  //     else {
+        
+  //       for (let i = 0; i < user.recipes.length; i++) {
+  //         if (user.recipes[i] == recipe) {
+  //           console.log('here')
+  //           user.recipes.splice(i, 1);
+  //         }
+  //       }
+  //       user.save(function (err, user) {
+  //         if (err) {
+  //           console.log("ERROR: unable to update")
+  //           res.status(500).send("Error: unable to update")
+  //         }
+  //         else {
+  //           console.log("Update successful");
+  //           res.status(200).send("Update successful")
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 };

@@ -25,14 +25,18 @@ module.exports = function(app, express){
   });
   app.post('/api/signup', userHandler.signup);
   app.get('/api/signin', userHandler.signin);
-  app.put('/api/addItem', userHandler.addItem);
-  app.put('/api/removeItem', userHandler.removeItem);
-  app.get('/api/getItems', userHandler.getItems);
-  app.get('/api/getRecipes', userHandler.getRecipes);
-  app.put('/api/updateItem', userHandler.updateItem);
-  app.put('/api/addRecipe', userHandler.addRecipe);
-  app.get('/api/getSavedRecipes', userHandler.getSavedRecipes);
-  app.put('/api/removeRecipe', userHandler.removeRecipe);
+  // app.put('/api/addItem', userHandler.addItem);
+  // app.put('/api/removeItem', userHandler.removeItem);
+  // app.get('/api/getItems', userHandler.getItems);
+  // app.get('/api/getRecipes', userHandler.getRecipes);
+  // app.put('/api/updateItem', userHandler.updateItem);
+  // app.put('/api/addRecipe', userHandler.addRecipe);
+  // app.get('/api/getSavedRecipes', userHandler.getSavedRecipes);
+  // app.put('/api/removeRecipe', userHandler.removeRecipe);
+  app.put('/api/addBirthday', userHandler.addBirthday);
+  app.put('/api/removeBirthday', userHandler.removeBirthday);
+  app.get('/api/getBirthdays', userHandler.getBirthdays);
+  app.put('/api/updateBirthday', userHandler.updateBirthday);
   // Add headers
 
 };

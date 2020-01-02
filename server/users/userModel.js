@@ -1,12 +1,22 @@
 const mongoose = require('mongoose');
 
+// let UserSchema = new mongoose.Schema({
+//     username: String,
+//     email: String,
+//     password: String,
+//     fridge: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
+//     freezer: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
+//     recipes: [String]
+// });
+
 let UserSchema = new mongoose.Schema({
     username: String,
     email: String,
     password: String,
-    fridge: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
-    freezer: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
-    recipes: [String]
+    //fridge: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
+    //freezer: [{name: String, expDate: Date, purchaseDate: Date, quantity: Number}],
+    //recipes: [String]
+    birthdays: [{name: String, birthdate: Date}]
 });
 
 // Export this schema to make it available from other files
