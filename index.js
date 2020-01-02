@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 let port = 3000;
 
 // connect db
-mongoose.connect(process.env.FRIDGE_MONGODB_URI, 
+mongoose.connect(process.env.BIRTHDAY_MONGODB_URI, 
 {
     useUnifiedTopology: true,
     useNewUrlParser: true
